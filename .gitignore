@@ -18,3 +18,4 @@ yarn-error.*
 .env*.local
 supabase/.temp/
 supabase/.branches/
+prototype/site/
