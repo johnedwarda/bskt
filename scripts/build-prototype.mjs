@@ -33,19 +33,24 @@ body { background: #E6E2D6; -webkit-tap-highlight-color: transparent; }
 header { position: fixed; left: 0; top: 0; right: 0; z-index: 4; padding: 16px 20px; display: flex; align-items: center; gap: 10px;
   color: #1B2B22; font: 600 17px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: -0.01em; }
 header .je { width: 24px; height: 29px; display: block; flex: none; }
-header h1 { margin: 0; font: inherit; }
+header h1 { margin: 0; font: inherit; white-space: nowrap; min-width: 0; }
+@media (max-width: 389px) { header h1 .ip { display: none; } }
 header h1 span { color: rgba(27, 43, 34, 0.6); font-weight: 400; }
 @media (max-width: 519px) { header { padding: 12px 16px; font-size: 15px; } }
 #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
 #phone { flex: none; width: 390px; height: 844px; transform-origin: 50% 50%; border-radius: 48px; overflow: hidden;
   background: #F5F3EC; box-shadow: 0 0 0 10px #1B2B22, 0 30px 80px rgba(27, 43, 34, 0.28); }
-#back { position: fixed; left: 0; top: 0; z-index: 5; width: 44px; height: 44px; margin: -22px 0 0 -22px; padding: 0; border: 0;
-  border-radius: 50%; background: #1B2B22; color: #F5F3EC; display: grid; place-items: center; cursor: pointer;
-  box-shadow: 0 0 0 3px #E6E2D6, 0 6px 16px rgba(27, 43, 34, 0.3); -webkit-tap-highlight-color: transparent;
-  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-#back:hover { transform: scale(1.06); }
-#back:active { transform: scale(0.94); }
-#back:focus-visible { outline: 2px solid #A8432E; outline-offset: 3px; }
+#back { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 12px; height: 44px; padding: 0 6px 0 18px; border: 0;
+  border-radius: 22px; background: color-mix(in srgb, #1B2B22 7%, transparent); color: #1B2B22; font-family: inherit; font-size: 15px; font-weight: 500; line-height: 1; letter-spacing: 0;
+  cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.25s; }
+#back:hover { background: color-mix(in srgb, #1B2B22 12%, transparent); }
+#back .dot { width: 32px; height: 32px; border-radius: 16px; background: #3B2BEF; color: #FFFFFF; display: grid; place-items: center;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+#back:hover .dot { transform: translateX(-3px); }
+#back:active .dot { transform: scale(0.92); }
+#back:focus-visible { outline: 2px solid #3B2BEF; outline-offset: 3px; }
+@media (max-width: 519px) { #back { height: 40px; border-radius: 20px; padding: 0 6px 0 16px; gap: 10px; font-size: 14px; } #back .dot { width: 28px; height: 28px; border-radius: 14px; } }
+@media (prefers-reduced-motion: reduce) { #back .dot { transition: none; } }
 #fail { display: none; position: fixed; inset: 0; padding: 24px; font: 15px/1.5 system-ui, sans-serif; color: #1B2B22; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
@@ -54,10 +59,10 @@ header h1 span { color: rgba(27, 43, 34, 0.6); font-weight: 400; }
 <body>
 <header>
   <svg class="je" viewBox="2 6 81 96" role="img" aria-label="John Edward"><path d="M14 34H26V84Q26 98 12 98H6V87H9Q14 87 14 82Z" fill="currentColor"/><circle cx="20" cy="18" r="7.5" fill="#6A5CFF"/><path d="M35.5 57H73.5A19 19 0 1 0 69.1 69.2" fill="none" stroke="currentColor" stroke-width="11"/></svg>
-  <h1>bskt <span>· interactive prototype</span></h1>
+  <h1>bskt <span>· <span class="ip">interactive </span>prototype</span></h1>
+  <button id="back" class="pill" type="button"><span>Back</span><span class="dot"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M11.5 7H2.5M6 3.5 2.5 7 6 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
 </header>
 <div id="stage"><div id="phone"></div></div>
-<button id="back" type="button" aria-label="Back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
 <div id="fail">The prototype couldn't load. Check your connection and reload the page.</div>
 <script>
 ${runtime}
@@ -69,7 +74,7 @@ ${runtime}
   Object.keys(sources).forEach(function (n) { DCRuntime.register(n, sources[n]); });
   var phone = document.getElementById('phone');
   var back = document.getElementById('back');
-  // Always show the phone frame (10px border) scaled to fit, with the back button on its top-left corner.
+  // Always show the phone frame (10px border) scaled to fit below the header.
   var stage = document.getElementById('stage');
   var header = document.querySelector('header');
   function fit() {
@@ -80,10 +85,6 @@ ${runtime}
     var pad = w < 600 ? 40 : 64;
     var s = Math.min(1, (w - pad) / 410, (h - pad) / 864);
     phone.style.transform = 'scale(' + s + ')';
-    var r = phone.getBoundingClientRect();
-    // centre of the button sits on the frame's outer corner arc, at 45 degrees (corner radius 48 + border 10)
-    var k = (48 - 58 * Math.SQRT1_2) * s;
-    back.style.left = (r.left + k) + 'px'; back.style.top = (r.top + k) + 'px';
   }
   // Same as the browser's Back button; if this page was opened in a new tab, return to the page that linked here.
   back.addEventListener('click', function () {
